@@ -2,20 +2,12 @@
 # Ellen Bledsoe
 # December 2015
 
-##### Load File #####
+##### Load Files #####
 
 # figure out some way to load all
 files <-  list.files("data_csv", pattern="*.csv", full.names = TRUE)
-
-myse_0937 <- read.csv("data_csv/MYSE_150937.csv")
-myse_1909 <- read.csv("data_csv/MYSE_151909.csv")
-myso_0995 <- read.csv("data_csv/MYSO_150995.csv")
-myse_1230 <- read.csv("data_csv/MYSE_151230.csv")
-myse_1312 <- read.csv("data_csv/MYSE_151312.csv")
-myso_1547 <- read.csv("data_csv/MYSO_151547.csv")
-myse_1467 <- read.csv("data_csv/MYSE_151467.csv")
-myse_1830 <- read.csv("data_csv/MYSE_151830.csv")
-myso_1786 <- read.csv("data_csv/MYSO_151786.csv")
+for (i in 1:length(files)) assign(files[i], read.csv(files[i]))
+# is there a way to get rid of the "data_csv" part at the beginning?
 
 ##### Functions #####
 
