@@ -9,7 +9,7 @@
 ####################################
 
 library(dplyr)
-
+library(ggplot2)
 
 # LOAD FILES
 ####################################
@@ -25,4 +25,29 @@ myso_313 <- read.csv("2014bats/myso_313.csv")
 # ARRANGE THE DATA
 ####################################
 
-myse_073 <- select(myse_073, )
+# sex -- male = 0, female = 1
+# age -- juv = 0, adult = 1
+# repro -- NR = 0, repro = 1
+# species -- msye = 0, myso = 1
+
+myse_227$Sex <- "1"
+myse_227$Age <- "1"
+myse_227$Repro <- "1"
+myse_227$Species <- "0"
+
+myso_313$Sex <- "0"
+myso_313$Age <- "1"
+myso_313$Repro <- "0"
+myso_313$Species <- "1"
+
+myse_456$Sex <- "1"
+myse_456$Age <- "0"
+myse_456$Repro <- "0"
+myse_456$Species <- "0"
+
+myse_073$Sex <- "1"
+myse_073$Age <- "1"
+myse_073$Repro <- "1"
+myse_073$Species <- "0"
+
+my
