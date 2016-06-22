@@ -64,10 +64,13 @@ ggplot(bat_150.112, aes(x = date_time, y = skin_temp)) +
   geom_point()+
   scale_x_datetime(breaks = "5 days")
 
+# 150.073
 bat_150.073 <- get_bat_data("barney_data/bat_150.073.csv") %>% 
                filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+weather_073 <- weather2014 %>% filter(bat == '150.073')
 ggplot(bat_150.073, aes(x = date_time, y = skin_temp)) +
   geom_point()+
+  geom_point(data = weather_073, aes(x = date_time, y = temp_C), color = "red")+
   geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
   geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
   scale_x_datetime(breaks = "1 day") +
