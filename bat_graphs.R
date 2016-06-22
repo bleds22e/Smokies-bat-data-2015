@@ -39,18 +39,45 @@ weather2015 <- select(weather2015, date_time, temp_C)
 
 get_bat_data <- function(filename){
   batdat <- read.csv(file = filename) %>% 
-    tidyr::unite(date_time, date, time, sep = " ")
-  parsed_bat <- as.data.frame(parse_date_time(batdat$date_time, "mdy_hms", tz = "EST"))
+    tidyr::unite(old_date_time, date, time, sep = " ")
+  parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
+  colnames(parsed_bat) <- c("date_time")
   batdat <- cbind(batdat, parsed_bat) %>% 
-    select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species)
+            select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species)
   return(batdat)
 }
 
 filenames <- list.files(path = "barney_data", pattern = "bat_")
+filenames
 filenames <- filenames[1:3]
 for (file in filenames){
   print(file)
-  get_bat_data(file)
+  get_bat_data(paste("barney_data/", file, sep = ""))
+  return(file)
 }
 
-get_bat_data("barney_data/bat_150.112.csv")
+
+
+bat_150.112 <- get_bat_data("barney_data/bat_150.112.csv") %>% 
+               filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+ggplot(bat_150.112, aes(x = date_time, y = skin_temp)) +
+  geom_point()+
+  scale_x_datetime(breaks = "5 days")
+
+bat_150.073 <- get_bat_data("barney_data/bat_150.073.csv") %>% 
+               filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+ggplot(bat_150.073, aes(x = date_time, y = skin_temp)) +
+  geom_point()+
+  geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+  geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+  scale_x_datetime(breaks = "1 day") +
+  theme_bw()
+
+bat_150.189 <- get_bat_data("barney_data/bat_150.189.csv") %>% 
+  filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+ggplot(bat_150.189, aes(x = date_time, y = skin_temp)) +
+  geom_point()+
+  geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+  geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+  scale_x_datetime(breaks = "1 day") +
+  theme_bw()
