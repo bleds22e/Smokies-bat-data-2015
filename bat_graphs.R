@@ -17,15 +17,17 @@ library(lubridate)
 weather2014 <- read.csv("barney_data/hobo_data_by_bat.csv") %>% 
                select(bat = Bat, date_time = PASTE.VALUES, temp_C = Temperature...C..c.1) 
 parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_hms", tz = "EST"))
-weather2014 <- cbind(weather2014, parsed_2014) %>% 
-               select(bat, date_time = parsed_2014, temp_C)
+weather2014 <- cbind(weather2014, parsed_2014)
+colnames(weather2014) <- c("bat", "old_date_time", "temp_C", "date_time")
+weather2014 <- select(weather2014, date_time, temp_C, bat)
 
 # 2015 Weather
 weather2015 <- read.csv("barney_data/weather_2015.csv") %>% 
                rename(temp_C = outside_temp)
 parsed_2015 <- as.data.frame(parse_date_time(weather2015$date_time, "mdy_hm", tz = "EST"))
-weather2015 <- cbind(weather2015, parsed_2015) %>% 
-               select(date_time = parsed_2015, temp_C)
+weather2015 <- cbind(weather2015, parsed_2015)
+colnames(weather2015) <- c("old_date_time", "temp_C", "date_time")
+weather2015 <- select(weather2015, date_time, temp_C)
 
 ######################
 # FUNCTIONS
