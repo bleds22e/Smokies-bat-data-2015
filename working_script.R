@@ -3,13 +3,20 @@
 # December 2015
 
 ##### Load Files #####
+library(dplyr)
 
-# figure out some way to load all
-files <-  list.files("data_csv", pattern="*.csv", full.names = TRUE)
-for (i in 1:length(files)) assign(files[i], read.csv(files[i]))
-# is there a way to get rid of the "data_csv" part at the beginning?
+myse_150937 <- read.csv("data_csv/MYSE_150937.csv")
+myse_151230 <- read.csv("data_csv/MYSE_151230.csv")
+myse_151312 <- read.csv("data_csv/MYSE_151312.csv")
+myse_151467 <- read.csv("data_csv/MYSE_151467.csv")
+myse_151830 <- read.csv("data_csv/MYSE_151830.csv")
+myse_151909 <- read.csv("data_csv/MYSE_151909.csv")
+myso_150995 <- read.csv("data_csv/MYSO_150995.csv")
+myso_151547 <- read.csv("data_csv/MYSO_151547.csv")
+myso_151786 <- read.csv("data_csv/MYSO_151786.csv")
 
-# jk just use dplyr--then you can export into csv and stuff :)
+datasets <- c(myse_150937, myse_151230, myse_151312, myse_151467, myse_151830, 
+              myso_150995, myso_151547, myso_151786)
 
 ##### Functions #####
 
@@ -43,16 +50,6 @@ check_NA_time <- function(data){
   print("done")
 }
 
-time_change <- function(data){
-  # lists row numbers for time change > 1 min
-  for (n in 1:length(data[,1])) {
-    if (data$Time.1min[n] == 1) {
-      print(data$ref[n])
-    }
-  }
-  print("done")
-}
-
 check_NA_BPM <- function(data){
   # checks for NAs in BPM change > 1 column
   for (n in 1:length(data[,1])) {
@@ -63,33 +60,40 @@ check_NA_BPM <- function(data){
   print("done")
 }
 
-###### working
-BPMchange <- function(data){
-  # lists row numbers for BPM change > 1
-  for (n in 1:length(data[,1])) {
-    if (data$BPM.Change[n] == 1) {
-      issues <- print(data$ref[n])
-    }
-  }
-  return(issues)
+channel_and_NAs <- function(data){
+  channel <- check_channel(data, data$Channel[2])
+  timechange_NA <- check_NA_timechange(data)
+  time_NA <- check_NA_time(data)
+  BPM_NA <- check_NA_BPM(data)
 }
-
-BPMchange(`data_csv/MYSE_151909.csv`)
-issues <- as.list(BPMchange(`data_csv/MYSE_151909.csv`))
-print(paste('BPM_change_1:', issues))
 
 ##################
 
 
+
 ##### Results #####
 
-# MYSE 150.937
-data <- myse_0937
-channel <- check_channel(data, data$Channel[2])
-timechange_NA <- check_NA_timechange(data)
-time_NA <- check_NA_time(data)
-time_1 <- time_change(data)
-BPM_NA <- check_NA_BPM(data)
-BPM_1 <- BPMchange(data)
+### Step 1
 
-# good output for these? text file or csv?
+channel_and_NAs(myse_150937)
+channel_and_NAs(myse_151230)
+channel_and_NAs(myse_151312)
+channel_and_NAs(myse_151467)
+channel_and_NAs(myse_151830)
+channel_and_NAs(myse_151909)
+channel_and_NAs(myso_150995)
+channel_and_NAs(myso_151547)
+channel_and_NAs(myso_151786)
+
+### Step 2
+
+############### WORKING AREA ################
+
+time_changes <- myso_151786 %>% 
+                filter(Time.1min == '1')
+time_change_refs <- time_changes %>% select(ref, Frequency)
+write.csv(time_change_refs, "myso_151786_time_refs.csv")
+BPM_changes <- myso_151786 %>% 
+               filter(BPM.Change == '1')
+BPM_changes_refs <- BPM_changes %>% select(ref, Frequency)
+write.csv(BPM_changes_refs, "myso_151786_BPM_refs.csv")
