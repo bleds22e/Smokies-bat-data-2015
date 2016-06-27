@@ -11,6 +11,32 @@ library(stringr)
 library(lubridate)
 
 ######################
+# FUNCTIONS
+
+get_bat_data <- function(file){
+  # tidy up the dataframe for a bat
+  batdat <- file %>% 
+    tidyr::unite(old_date_time, date, time, sep = " ") %>% 
+    filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+  parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
+  colnames(parsed_bat) <- c("date_time")
+  batdat <- cbind(batdat, parsed_bat) %>% 
+            select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species)
+  return(batdat)
+}
+
+plot_torpor <- function(bat, weather){
+  # plot bat temp, outside temp, light and deep torpor over time for a bat
+  ggplot(bat, aes(x = date_time, y = skin_temp)) +
+    geom_point()+
+    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
+    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+    scale_x_datetime(date_breaks = "1 day") +
+    theme_bw()
+}
+
+######################
 # LOAD FILES
 
 # 2014 Weather
@@ -31,33 +57,11 @@ weather2015 <- select(weather2015, date_time, temp_C)
 
 # bat data
 filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
+bat_data <- list()
 for (file in filenames){
+  # make each bat a dataframe in a list called bat_data
   name <- gsub(".csv", "", file)
-  assign(name, read.csv(paste("barney_data/", file, sep = "")))
-}
-
-######################
-# FUNCTIONS
-
-get_bat_data <- function(filename){
-  batdat <- read.csv(file = filename) %>% 
-    tidyr::unite(old_date_time, date, time, sep = " ") %>% 
-    filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
-  parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
-  colnames(parsed_bat) <- c("date_time")
-  batdat <- cbind(batdat, parsed_bat) %>% 
-            select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species)
-  return(batdat)
-}
-
-plot_torpor <- function(bat, weather){
-  ggplot(bat, aes(x = date_time, y = skin_temp)) +
-    geom_point()+
-    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
-    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
-    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
-    scale_x_datetime(date_breaks = "1 day") +
-    theme_bw()
+  bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""))))
 }
 
 ######################
