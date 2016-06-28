@@ -16,8 +16,8 @@ library(lubridate)
 get_bat_data <- function(file){
   # tidy up the dataframe for a bat
   batdat <- file %>% 
-    tidyr::unite(old_date_time, date, time, sep = " ") %>% 
-    filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
+            tidyr::unite(old_date_time, date, time, sep = " ") %>% 
+            filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
   parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
   colnames(parsed_bat) <- c("date_time")
   batdat <- cbind(batdat, parsed_bat) %>% 
@@ -34,6 +34,19 @@ plot_torpor <- function(bat, weather){
     geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
     scale_x_datetime(date_breaks = "1 day") +
     theme_bw()
+}
+
+get_temp_2015 <- function(bat, weather){
+  # function to add bat id to 2015 weather
+  weather <- weather %>% 
+             tidyr::separate(date_time, c("date", "time"), sep = " ")
+  bat <- bat %>% 
+         tidyr::separate(date_time, c("date", "time"), sep = " ")
+  bat_weather <- semi_join(weather, bat, by = 'date')
+  bat_weather$bat_id <- bat$bat_id[2]
+  bat_weather <- bat_weather %>% tidyr::unite(date_time, date, time, sep = " ")
+  as.POSIXct(bat_weather$date_time, tz = "EST")
+  return(bat_weather)
 }
 
 ######################
@@ -67,13 +80,17 @@ for (file in filenames){
 ######################
 # WORK AREA
 
-
-
-
-
-
-
-
-# 150.073
-bat_150.073 <- get_bat_data("barney_data/bat_150.073.csv")
 weather_073 <- weather2014 %>% filter(bat == '150.073')
+weather2015_909 <- weather2015
+bat_073 <- bat_150.073
+bat_909 <- bat_151.909
+
+# if (year(df$date_time[2]) == '2014')
+     # function for 2014
+# else 
+     # function for 2015
+
+
+
+
+bat_weather <- get_temp_2015(bat_909, weather2015_909)
