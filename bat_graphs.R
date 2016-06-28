@@ -21,7 +21,8 @@ get_bat_data <- function(file){
   parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
   colnames(parsed_bat) <- c("date_time")
   batdat <- cbind(batdat, parsed_bat) %>% 
-            select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species)
+            select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species) %>% 
+            arrange(date_time)
   return(batdat)
 }
 
@@ -37,6 +38,15 @@ get_temp_2015 <- function(bat, weather){
   as.POSIXct(bat_weather$date_time, tz = "EST")
   return(bat_weather)
 }
+
+get_weather <- function(bat){
+  # get the appropriate weather data for each bat
+  if (year(bat$date_time[2]) == '2014'){
+    bat_weather <- weather2014 %>% filter(weather2014$bat_id == bat$bat_id[2])
+  } else {
+    get_temp_2015(bat, weather2015)
+  }
+} 
 
 plot_torpor <- function(bat, weather){
   # plot bat temp, outside temp, light and deep torpor over time for a bat
@@ -58,7 +68,7 @@ weather2014 <- read.csv("barney_data/hobo_data_by_bat.csv") %>%
 parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_hms", tz = "EST"))
 weather2014 <- cbind(weather2014, parsed_2014)
 colnames(weather2014) <- c("bat_id", "old_date_time", "temp_C", "date_time")
-weather2014 <- select(weather2014, date_time, temp_C, bat_id)
+weather2014 <- select(weather2014, date_time, temp_C, bat_id) %>% arrange(date_time)
 
 # 2015 Weather
 weather2015 <- read.csv("barney_data/weather_2015.csv") %>% 
@@ -66,7 +76,7 @@ weather2015 <- read.csv("barney_data/weather_2015.csv") %>%
 parsed_2015 <- as.data.frame(parse_date_time(weather2015$date_time, "mdy_hm", tz = "EST"))
 weather2015 <- cbind(weather2015, parsed_2015)
 colnames(weather2015) <- c("old_date_time", "temp_C", "date_time")
-weather2015 <- select(weather2015, date_time, temp_C)
+weather2015 <- select(weather2015, date_time, temp_C) %>% arrange(date_time)
 
 # bat data
 filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
@@ -77,27 +87,17 @@ for (file in filenames){
   bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""), colClasses = c(sex = "character"))))
 }
 
+# weather data
+
+
 ######################
 # WORK AREA
 
 
-weather2015_909 <- weather2015
-bat_073 <- bat_150.073
-bat_909 <- bat_151.909
-
 weather_matched <- list()
 
-get_weather <- function(bat){
-  if (year(bat$date_time[2]) == '2014'){
-    bat_weather <- weather2014 %>% filter(bat_id == bat_id[2])
-  } else {
-    get_temp_2015(bat, weather2015)
-  }
-} 
 
- 
 
-weather_909 <- get_weather(bat_909)
-weather_073 <- get_weather(bat_073)
 
-bat_weather <- get_temp_2015(bat_909, weather2015_909)
+
+
