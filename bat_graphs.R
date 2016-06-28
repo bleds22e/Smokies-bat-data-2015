@@ -93,11 +93,18 @@ for (file in filenames){
 ######################
 # WORK AREA
 
-
+# trying to get naming correct
 weather_matched <- list()
+for (bat in bat_data){
+  name <- gsub("bat", "weather", bat)
+  weather_matched[[bat]] <- assign(name, get_weather(bat))
+}
 
-
-
+# this seems to work except for 150.937
+  # which has no matching weather data?
+for (bat in bat_data){
+  get_weather(bat)
+}
 
 
 
