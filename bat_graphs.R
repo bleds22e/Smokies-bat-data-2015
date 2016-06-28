@@ -61,7 +61,7 @@ bat_data <- list()
 for (file in filenames){
   # make each bat a dataframe in a list called bat_data
   name <- gsub(".csv", "", file)
-  bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""))))
+  bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""), colClasses = c(sex = "character"))))
 }
 
 ######################
