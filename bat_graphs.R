@@ -25,17 +25,6 @@ get_bat_data <- function(file){
   return(batdat)
 }
 
-plot_torpor <- function(bat, weather){
-  # plot bat temp, outside temp, light and deep torpor over time for a bat
-  ggplot(bat, aes(x = date_time, y = skin_temp)) +
-    geom_point()+
-    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
-    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
-    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
-    scale_x_datetime(date_breaks = "1 day") +
-    theme_bw()
-}
-
 get_temp_2015 <- function(bat, weather){
   # function to add bat id to 2015 weather
   weather <- weather %>% 
@@ -49,6 +38,17 @@ get_temp_2015 <- function(bat, weather){
   return(bat_weather)
 }
 
+plot_torpor <- function(bat, weather){
+  # plot bat temp, outside temp, light and deep torpor over time for a bat
+  ggplot(bat, aes(x = date_time, y = skin_temp)) +
+    geom_point()+
+    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
+    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+    scale_x_datetime(date_breaks = "1 day") +
+    theme_bw()
+}
+
 ######################
 # LOAD FILES
 
@@ -57,8 +57,8 @@ weather2014 <- read.csv("barney_data/hobo_data_by_bat.csv") %>%
                select(bat = Bat, date_time = PASTE.VALUES, temp_C = Temperature...C..c.1) 
 parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_hms", tz = "EST"))
 weather2014 <- cbind(weather2014, parsed_2014)
-colnames(weather2014) <- c("bat", "old_date_time", "temp_C", "date_time")
-weather2014 <- select(weather2014, date_time, temp_C, bat)
+colnames(weather2014) <- c("bat_id", "old_date_time", "temp_C", "date_time")
+weather2014 <- select(weather2014, date_time, temp_C, bat_id)
 
 # 2015 Weather
 weather2015 <- read.csv("barney_data/weather_2015.csv") %>% 
@@ -80,17 +80,24 @@ for (file in filenames){
 ######################
 # WORK AREA
 
-weather_073 <- weather2014 %>% filter(bat == '150.073')
+
 weather2015_909 <- weather2015
 bat_073 <- bat_150.073
 bat_909 <- bat_151.909
 
-# if (year(df$date_time[2]) == '2014')
-     # function for 2014
-# else 
-     # function for 2015
+weather_matched <- list()
 
+get_weather <- function(bat){
+  if (year(bat$date_time[2]) == '2014'){
+    bat_weather <- weather2014 %>% filter(bat_id == bat_id[2])
+  } else {
+    get_temp_2015(bat, weather2015)
+  }
+} 
 
+ 
 
+weather_909 <- get_weather(bat_909)
+weather_073 <- get_weather(bat_073)
 
 bat_weather <- get_temp_2015(bat_909, weather2015_909)
