@@ -35,7 +35,7 @@ get_temp_2015 <- function(bat, weather){
   bat_weather <- semi_join(weather, bat, by = 'date')
   bat_weather$bat_id <- bat$bat_id[2]
   bat_weather <- bat_weather %>% tidyr::unite(date_time, date, time, sep = " ")
-  as.POSIXct(bat_weather$date_time, tz = "EST")
+  as.POSIXct(bat_weather["date_time"], tz = "EST")
   return(bat_weather)
 }
 
