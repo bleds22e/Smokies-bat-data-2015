@@ -88,23 +88,21 @@ for (file in filenames){
 }
 
 # weather data
-
+bat_data_remove <- bat_data[-c(10, 11, 19)]
 
 ######################
 # WORK AREA
 
 # trying to get naming correct
 weather_matched <- list()
-for (bat in bat_data){
-  name <- gsub("bat", "weather", bat)
-  weather_matched[[bat]] <- assign(name, get_weather(bat))
-}
-
-# this seems to work except for 150.937
-  # which has no matching weather data?
-for (bat in bat_data){
-  get_weather(bat)
+bat_files <- names(bat_data_remove)
+for (bat in bat_files){
+  name <- gsub("bat", "weather", bat_file)
+  name2 <- gsub(".csv", "", name)
+  weather_matched[[bat]] <- assign(name2, get_weather(bat))
 }
 
 
+
+names(bat_data)
 
