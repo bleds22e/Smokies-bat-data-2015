@@ -88,7 +88,9 @@ plot_torpor <- function(bat, weather){
 ######################
 # LOAD FILES
 
-# 2014 Weather
+### clean weather files
+
+# 2014
 weather2014 <- read.csv("barney_data/hobo_data_by_bat.csv") %>% 
                select(bat = Bat, date_time = PASTE.VALUES, temp_C = Temperature...C..c.1) 
 parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_hms", tz = "EST"))
@@ -96,7 +98,7 @@ weather2014 <- cbind(weather2014, parsed_2014)
 colnames(weather2014) <- c("bat_id", "old_date_time", "temp_C", "date_time")
 weather2014 <- select(weather2014, date_time, temp_C, bat_id) %>% arrange(date_time)
 
-# 2015 Weather
+# 2015
 weather2015 <- read.csv("barney_data/weather_2015.csv") %>% 
                rename(temp_C = outside_temp)
 parsed_2015 <- as.data.frame(parse_date_time(weather2015$date_time, "mdy_hm", tz = "EST"))
@@ -104,7 +106,7 @@ weather2015 <- cbind(weather2015, parsed_2015)
 colnames(weather2015) <- c("old_date_time", "temp_C", "date_time")
 weather2015 <- select(weather2015, date_time, temp_C) %>% arrange(date_time)
 
-# read and clean all bat files into one dataframe
+### read and clean all bat files into one dataframe
 
 # bats
 filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = TRUE)
@@ -114,18 +116,27 @@ bat_data <- load_bat_data(filenames)
 no_temp_bats_removed <- filenames[-c(10, 11, 19)]
 weather_data <- load_weather_data(no_temp_bats_removed)
 
+### merge bat and weather together into one data frame
+
+weather_data$date_time <- as.POSIXct(weather_data$date_time)
+bat_weather <- full_join(x = bat_data, y = weather_data)
+
+### plot by unique bat ID
+
+# get unique ids
+unique_id_temp <- select(weather_data, bat_id) %>% distinct()
+unique_id_total <- select(bat_data, bat_id) %>% distinct()
+
 ######################
 # WORK AREA
 
-# load all weather files (with bat_id) into one dataframe
 
-weather_909 <- get_weather(no_temp_bats_removed[17])
-str(weather_909)
-
-weather_709 <- get_weather(no_temp_bats_removed[15])
-str(weather_709)
-
-
+# need to figure out how to filter by each unique bat_id
+  # then lapply over each bat_id with plotting function (better?)
+  # OR
+  # make individual df, put in list, the lapply/for loop through list
+  # OR
+  # use bat_data and 
 
 
 
@@ -143,26 +154,24 @@ str(weather_709)
 
 ### new approach, add weather to dataframe for each bat
 
-merge_bat_weather <- function(bat){
-  bat_weather <- get_weather(bat)
-  bat$bat_id <- as.numeric(as.character(bat_weather$bat_id))
-  bat_weather <- full_join(x = bat, y = bat_weather)
-}
+#merge_bat_weather <- function(bat){
+  #bat_weather <- get_weather(bat)
+  #bat$bat_id <- as.numeric(as.character(bat_weather$bat_id))
+  #bat_weather <- full_join(x = bat, y = bat_weather)
+#}
 
 #str(bat_150.313)
 #weather_313 <- get_weather(bat_150.313)
 #weather_313$bat_id <- as.numeric(as.character(weather_313$bat_id))
 #str(weather_313)
-bat_weather_313 <- merge_bat_weather(bat_150.313)
+#bat_weather_313 <- merge_bat_weather(bat_150.313)
 
 ### trying to get naming correct
-bat_files <- names(bat_data_remove)
-weather_matched <- list()
-for (bat in bat_files){
-  name <- gsub("bat", "weather", bat_files)
-  name2 <- gsub(".csv", "", name)
-  weather_matched[[bat]] <- assign(name2, get_weather(read.csv(paste("barney_data/", bat, sep = ""))))
-}
+#bat_files <- names(bat_data_remove)
+#weather_matched <- list()
+#for (bat in bat_files){
+  #name <- gsub("bat", "weather", bat_files)
+  #name2 <- gsub(".csv", "", name)
+  #weather_matched[[bat]] <- assign(name2, get_weather(read.csv(paste("barney_data/", bat, sep = ""))))
+#}
 
-### weather data
-bat_data_remove <- bat_data[-c(10, 11, 19)]
