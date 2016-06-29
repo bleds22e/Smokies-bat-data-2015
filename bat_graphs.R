@@ -26,26 +26,34 @@ get_bat_data <- function(file){
   return(batdat)
 }
 
-get_temp_2015 <- function(bat, weather){
+get_temp_2015 <- function(bat){
   # function to add bat id to 2015 weather
-  weather <- weather %>% 
+  weather <- weather2015 %>% 
              tidyr::separate(date_time, c("date", "time"), sep = " ")
   bat <- bat %>% 
          tidyr::separate(date_time, c("date", "time"), sep = " ")
   bat_weather <- semi_join(weather, bat, by = 'date')
   bat_weather$bat_id <- bat$bat_id[2]
   bat_weather <- bat_weather %>% tidyr::unite(date_time, date, time, sep = " ")
-  as.POSIXct(bat_weather["date_time"], tz = "EST")
   return(bat_weather)
+}
+
+get_temp_2014 <- function(bat){
+  weather <- weather2014 %>% 
+             tidyr::separate(date_time, c("date", "time"), sep = " ") %>% 
+             tidyr::unite(date_time, date, time, sep = " ") %>% 
+             filter(weather2014$bat_id == bat$bat_id[2])
+  return(weather)
 }
 
 get_weather <- function(bat){
   # get the appropriate weather data for each bat
   if (year(bat$date_time[2]) == '2014'){
-    bat_weather <- weather2014 %>% filter(weather2014$bat_id == bat$bat_id[2])
+    bat_weather <- get_temp_2014(bat)
   } else {
-    get_temp_2015(bat, weather2015)
+    bat_weather <- get_temp_2015(bat)
   }
+  return(bat_weather)
 } 
 
 plot_torpor <- function(bat, weather){
@@ -94,15 +102,12 @@ bat_data_remove <- bat_data[-c(10, 11, 19)]
 # WORK AREA
 
 # trying to get naming correct
-weather_matched <- list()
+
 bat_files <- names(bat_data_remove)
+weather_matched <- list()
 for (bat in bat_files){
-  name <- gsub("bat", "weather", bat_file)
+  name <- gsub("bat", "weather", bat_files)
   name2 <- gsub(".csv", "", name)
-  weather_matched[[bat]] <- assign(name2, get_weather(bat))
+  weather_matched[[bat]] <- assign(name2, get_weather(read.csv(paste("barney_data/", bat, sep = ""))))
 }
-
-
-
-names(bat_data)
 
