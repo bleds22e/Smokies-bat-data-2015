@@ -15,7 +15,8 @@ library(lubridate)
 
 get_bat_data <- function(file){
   # tidy up the dataframe for a bat
-  batdat <- file %>% 
+  batdat <- read.csv(file, header = TRUE, colClasses = c(sex = "character"))
+  batdat <- batdat %>% 
             tidyr::unite(old_date_time, date, time, sep = " ") %>% 
             filter(skin_temp > 0 & skin_temp < 100, time_of_day == 'Day')
   parsed_bat <- as.data.frame(parse_date_time(batdat$old_date_time, "mdy_hms", tz = "EST"))
@@ -24,6 +25,13 @@ get_bat_data <- function(file){
             select(bat_id, date_time, skin_temp, time_of_day, sex, repro, age, species) %>% 
             arrange(date_time)
   return(batdat)
+}
+
+load_bat_data <- function(files){
+  # read, clean and bind all bat CSV files into one dataframe
+  cleaned <- lapply(files, get_bat_data)
+  bat_data <- bind_rows(cleaned)
+  return(bat_data)
 }
 
 get_temp_2015 <- function(bat){
@@ -43,17 +51,27 @@ get_temp_2014 <- function(bat){
              tidyr::separate(date_time, c("date", "time"), sep = " ") %>% 
              tidyr::unite(date_time, date, time, sep = " ") %>% 
              filter(weather2014$bat_id == bat$bat_id[2])
+  bat$bat_id <- as.numeric(as.character(bat$bat_id))  
   return(weather)
 }
 
 get_weather <- function(bat){
   # get the appropriate weather data for each bat
+  bat <- get_bat_data(bat)
   if (year(bat$date_time[2]) == '2014'){
     bat_weather <- get_temp_2014(bat)
   } else {
     bat_weather <- get_temp_2015(bat)
   }
+  bat_weather$bat_id <- as.numeric(as.character(bat_weather$bat_id))
   return(bat_weather)
+}  
+
+load_weather_data <- function(files){
+  # make one dataframe with all weather data labelled with appropriate bat ID 
+  temps <- lapply(files, get_weather)
+  weather_data <- bind_rows(temps)
+  return(weather_data)
 } 
 
 plot_torpor <- function(bat, weather){
@@ -86,23 +104,58 @@ weather2015 <- cbind(weather2015, parsed_2015)
 colnames(weather2015) <- c("old_date_time", "temp_C", "date_time")
 weather2015 <- select(weather2015, date_time, temp_C) %>% arrange(date_time)
 
-# bat data
-filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
-bat_data <- list()
-for (file in filenames){
-  # make each bat a dataframe in a list called bat_data
-  name <- gsub(".csv", "", file)
-  bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""), colClasses = c(sex = "character"))))
-}
+# read and clean all bat files into one dataframe
 
-# weather data
-bat_data_remove <- bat_data[-c(10, 11, 19)]
+# bats
+filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = TRUE)
+bat_data <- load_bat_data(filenames)
+
+# weather
+no_temp_bats_removed <- filenames[-c(10, 11, 19)]
+weather_data <- load_weather_data(no_temp_bats_removed)
 
 ######################
 # WORK AREA
 
-# trying to get naming correct
+# load all weather files (with bat_id) into one dataframe
 
+weather_909 <- get_weather(no_temp_bats_removed[17])
+str(weather_909)
+
+weather_709 <- get_weather(no_temp_bats_removed[15])
+str(weather_709)
+
+
+
+
+
+#######################
+# NOT CURRENTLY IN USE
+
+### bat data
+#filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
+#bat_data <- list()
+#for (file in filenames){
+  # make each bat a dataframe in a list called bat_data
+  #name <- gsub(".csv", "", file)
+  #bat_data[[file]] <- assign(name, get_bat_data(read.csv(paste("barney_data/", file, sep = ""), colClasses = c(sex = "character", bat_id = "numeric"), stringsAsFactors = FALSE)))
+#}
+
+### new approach, add weather to dataframe for each bat
+
+merge_bat_weather <- function(bat){
+  bat_weather <- get_weather(bat)
+  bat$bat_id <- as.numeric(as.character(bat_weather$bat_id))
+  bat_weather <- full_join(x = bat, y = bat_weather)
+}
+
+#str(bat_150.313)
+#weather_313 <- get_weather(bat_150.313)
+#weather_313$bat_id <- as.numeric(as.character(weather_313$bat_id))
+#str(weather_313)
+bat_weather_313 <- merge_bat_weather(bat_150.313)
+
+### trying to get naming correct
 bat_files <- names(bat_data_remove)
 weather_matched <- list()
 for (bat in bat_files){
@@ -111,3 +164,5 @@ for (bat in bat_files){
   weather_matched[[bat]] <- assign(name2, get_weather(read.csv(paste("barney_data/", bat, sep = ""))))
 }
 
+### weather data
+bat_data_remove <- bat_data[-c(10, 11, 19)]
