@@ -137,8 +137,13 @@ unique_id_total <- select(bat_data, bat_id) %>% distinct()
   # make individual df, put in list, the lapply/for loop through list
   # OR
   # use bat_data and 
+unique_id_temp <- as.list(unique_id_temp)
 
-
+# could use bat id as facet wrap in ggplot (even divide by species, sex, etc)
+# individual plots using for loop based on unique id vector
+for batID in unique_id_temp{
+  plot_torpor(bat = bat_data[bat_data$bat_id == batID], weather = weather_data[weather$bat_id == batID])
+}
 
 #######################
 # NOT CURRENTLY IN USE
