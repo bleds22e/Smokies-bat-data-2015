@@ -76,15 +76,26 @@ load_weather_data <- function(files){
 
 plot_torpor <- function(bat, weather){
   # plot bat temp, outside temp, light and deep torpor over time for a bat
-  ggplot(bat, aes(x = date_time, y = skin_temp)) +
+  bat_plot <- ggplot(bat, aes(x = date_time, y = skin_temp)) +
     geom_point()+
     geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
     geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
     geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
     scale_x_datetime(date_breaks = "1 day") +
+    ylab("Temp (C)") +
+    xlab("Time")+
     theme_bw()
+  print(bat_plot)
+  bat_id <- gsub(".", "_", batdat$bat_id[2], fixed = TRUE)
+  ggsave(filename = paste("plot", bat_id, sep = "_", ".png"), plot = bat_plot)
 }
 
+test_bat <- bat_data %>% filter(bat_id == bat_id[2])
+test_weather <- weather_data %>% filter(bat_id == bat_id[2])
+plot_torpor(test_bat, test_weather)
+  
+
+ggsave(paste("plot", bat$bat_id[2], sep = "_"), bat_plot)
 ######################
 # LOAD FILES
 
@@ -127,37 +138,36 @@ bat_weather <- full_join(x = bat_data, y = weather_data)
 unique_id_temp <- select(weather_data, bat_id) %>% distinct()
 unique_id_total <- select(bat_data, bat_id) %>% distinct()
 
+### make plots per bat
+
+for (bat in unique_id_temp$bat_id) {
+  batdat <- filter(bat_data, bat_id == bat)
+  weatherdat <- filter(weather_data, bat_id == bat)
+  plot_torpor(batdat, weatherdat)
+}
+
 ######################
 # WORK AREA
 
-
-# need to figure out how to filter by each unique bat_id
-  # then lapply over each bat_id with plotting function (better?)
-  # OR
-  # make individual df, put in list, the lapply/for loop through list
-  # OR
-  # use bat_data and 
-
 # could use bat id as facet wrap in ggplot (even divide by species, sex, etc)
-# individual plots using for loop based on unique id vector (list?)
-for bat in unique_id2 {
-  bat_data <- filter(bat_data, bat_id == bat)
-  weather_data <- filter(weather_data, bat_id == bat)
-  plot_torpor(bat_data, weather_data)
-}
 
-unique_id <- as.list(unique_id)
-unique_id2 <- setNames(split(unique_id_temp, seq(nrow(unique_id_temp))), rownames(unique_id_temp))
-
-plots <- lapply(unique_id2, plot_torpor(bat_data, weather_data))
 
 
 
 #######################
 # NOT CURRENTLY IN USE
 
+#unique_id <- as.list(unique_id_temp)
+#unique_id2 <- setNames(split(unique_id_temp, seq(nrow(unique_id_temp))), rownames(unique_id_temp))
+
+#plots <- lapply(unique_id2, plot_torpor(bat_data, weather_data))
+
+#unique_id3 <- group_by(weather_data, bat_id) %>% 
+              #summarise() %>% 
+              #select(unique(bat_id))
+
 ### bat data
-filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
+#filenames <- list.files(path = "barney_data", pattern = "bat_", full.names = FALSE)
 #bat_data <- list()
 #for (file in filenames){
   # make each bat a dataframe in a list called bat_data
