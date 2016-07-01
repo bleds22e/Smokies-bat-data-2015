@@ -90,12 +90,6 @@ plot_torpor <- function(bat, weather){
   ggsave(filename = paste("plot", bat_id, sep = "_", ".png"), plot = bat_plot)
 }
 
-test_bat <- bat_data %>% filter(bat_id == bat_id[2])
-test_weather <- weather_data %>% filter(bat_id == bat_id[2])
-plot_torpor(test_bat, test_weather)
-  
-
-ggsave(paste("plot", bat$bat_id[2], sep = "_"), bat_plot)
 ######################
 # LOAD FILES
 
@@ -114,8 +108,11 @@ weather2015 <- read.csv("barney_data/weather_2015.csv") %>%
                rename(temp_C = outside_temp)
 parsed_2015 <- as.data.frame(parse_date_time(weather2015$date_time, "mdy_hm", tz = "EST"))
 weather2015 <- cbind(weather2015, parsed_2015)
-colnames(weather2015) <- c("old_date_time", "temp_C", "date_time")
-weather2015 <- select(weather2015, date_time, temp_C) %>% arrange(date_time)
+colnames(weather2015) <- c("old_date_time", "temp_F", "date_time")
+weather2015 <- select(weather2015, date_time, temp_F) %>% 
+               arrange(date_time) %>% 
+               mutate(temp_C = ((temp_F-32)*(5/9))) %>% 
+               select(date_time, temp_C)
 
 ### read and clean all bat files into one dataframe
 
@@ -126,11 +123,7 @@ bat_data <- load_bat_data(filenames)
 # weather
 no_temp_bats_removed <- filenames[-c(10, 11, 19)]
 weather_data <- load_weather_data(no_temp_bats_removed)
-
-### merge bat and weather together into one data frame
-
 weather_data$date_time <- as.POSIXct(weather_data$date_time)
-bat_weather <- full_join(x = bat_data, y = weather_data)
 
 ### plot by unique bat ID
 
@@ -138,12 +131,10 @@ bat_weather <- full_join(x = bat_data, y = weather_data)
 unique_id_temp <- select(weather_data, bat_id) %>% distinct()
 unique_id_total <- select(bat_data, bat_id) %>% distinct()
 
-### make plots per bat
+# make plots per bat
 
 for (bat in unique_id_temp$bat_id) {
-  batdat <- filter(bat_data, bat_id == bat)
-  weatherdat <- filter(weather_data, bat_id == bat)
-  plot_torpor(batdat, weatherdat)
+  plot_torpor(filter(bat_data, bat_id == bat), filter(weather_data, bat_id ==bat))
 }
 
 ######################
@@ -151,7 +142,42 @@ for (bat in unique_id_temp$bat_id) {
 
 # could use bat id as facet wrap in ggplot (even divide by species, sex, etc)
 
+# function with old dplyr--need to update version
 
+plot_torpor_old <- function(bat, weather){
+  # plot bat temp, outside temp, light and deep torpor over time for a bat
+  bat_plot <- ggplot(bat, aes(x = date_time, y = skin_temp)) +
+    geom_point()+
+    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
+    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+    scale_x_datetime(breaks = "1 day") +
+    ylab("Temp (C)") +
+    xlab("Time")+
+    theme_bw()
+  print(bat_plot)
+  bat_id <- gsub(".", "_", batdat$bat_id[2], fixed = TRUE)
+  ggsave(filename = paste("plot", bat_id, sep = "_", ".png"), plot = bat_plot)
+}
+
+for (bat in unique_id_temp$bat_id) {
+  plot_torpor_old(filter(bat_data, bat_id == bat), filter(weather_data, bat_id ==bat))
+}
+
+### Playing with other graphs
+
+# something about facets not being included?
+sex_sp_plot <- ggplot(bat_data, aes(x = date_time, y = skin_temp)) +
+  geom_point()+
+  geom_point(data = weather_data, aes(x = date_time, y = temp_C), color = "red")+
+  facet_grid(bat_data$sex ~ bat_data$species)+
+  geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
+  geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
+  scale_x_datetime(breaks = "1 day") +
+  ylab("Temp (C)") +
+  xlab("Time")+
+  theme_bw()
+print(sex_sp_plot)
 
 
 #######################
