@@ -97,9 +97,9 @@ plot_torpor <- function(bat, weather){
 ### clean weather files
 
 # 2014
-weather2014 <- read.csv("barney_data/hobo_data_by_bat.csv") %>% 
+weather2014 <- read.csv("barney_data/weather_2014_edited.csv") %>% 
                select(bat = Bat, date_time = PASTE.VALUES, temp_C = Temperature...C..c.1) 
-parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_HMS", tz = "EST"))
+parsed_2014 <- as.data.frame(parse_date_time(weather2014$date_time, "mdy_HM", tz = "EST"))
 weather2014 <- cbind(weather2014, parsed_2014)
 colnames(weather2014) <- c("bat_id", "old_date_time", "temp_C", "date_time")
 weather2014 <- select(weather2014, date_time, temp_C, bat_id) %>% arrange(date_time)
