@@ -79,12 +79,12 @@ plot_torpor <- function(bat, weather){
   bat_plot <- ggplot(bat, aes(x = date_time, y = runmed(skin_temp, 11))) +
     geom_point(size = 1)+
     geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red", size = 1)+
-    geom_hline(aes(yintercept=25), color="light blue")+
-    geom_hline(aes(yintercept=10), color="light blue")+
+    geom_hline(aes(yintercept=25), color="light blue", size = 1)+
+    geom_hline(aes(yintercept=10), color="light blue", size = 1)+
     scale_x_datetime(date_breaks = "1 day") +
     ylab("Temp (C)") +
     xlab("Time")+
-    theme_bw()+
+    ggtitle(bat$bat_id[2])+
     theme(axis.text.x = element_text(angle = 45, margin = margin(t = 15)))
   print(bat_plot)
   bat_id <- gsub(".", "_", bat$bat_id[2], fixed = TRUE)
@@ -149,4 +149,16 @@ plot_torpor(test_bat, test_weather)
 ######################
 # WORK AREA
 
+ggplot(test_bat, aes(x = date_time, y = runmed(skin_temp, 11))) +
+  geom_point(size = 1)+
+  geom_point(data = test_weather, aes(x = date_time, y = temp_C), color = "red", size = 1)+
+  geom_hline(aes(yintercept=25), color="light blue", size = 1)+
+  geom_hline(aes(yintercept=10), color="light blue", size = 1)+
+  scale_x_datetime(date_breaks = "1 day") +
+  ylab("Temp (C)") +
+  xlab("Time")+
+  ggtitle(test_bat$bat_id[2])+
+  theme(axis.text.x = element_text(angle = 45, margin = margin(t = 15)))
+  
+  
 
