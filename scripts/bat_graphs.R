@@ -147,58 +147,6 @@ plot_torpor(test_bat, test_weather)
 ######################
 # WORK AREA
 
-# could use bat id as facet wrap in ggplot (even divide by species, sex, etc)
-
-<<<<<<< HEAD:scripts/bat_graphs.R
-ggplot(test_bat, aes(x = date_time, y = runmed(skin_temp, 11))) +
-  geom_point(size = .5)+
-  geom_point(data = test_weather, aes(x = date_time, y = temp_C), color = "red", size = .5)+
-  geom_hline(aes(yintercept=25), color="light blue")+
-  geom_hline(aes(yintercept=10), color="light blue")+
-  scale_x_datetime(date_breaks = "1 day") +
-  ylab("Temp (C)") +
-  xlab("Time")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, margin = margin(t = 15)))
-=======
-# function with old dplyr--need to update version
-
-plot_torpor_old <- function(bat, weather){
-  # plot bat temp, outside temp, light and deep torpor over time for a bat
-  bat_plot <- ggplot(bat, aes(x = date_time, y = skin_temp)) +
-    geom_point()+
-    geom_point(data = weather, aes(x = date_time, y = temp_C), color = "red")+
-    geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
-    geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
-    scale_x_datetime(breaks = "1 day") +
-    ylab("Temp (C)") +
-    xlab("Time")+
-    theme_bw()
-  print(bat_plot)
-  bat_id <- gsub(".", "_", batdat$bat_id[2], fixed = TRUE)
-  ggsave(filename = paste("plot", bat_id, sep = "_", ".png"), plot = bat_plot)
-}
-
-for (bat in unique_id_temp$bat_id) {
-  plot_torpor_old(filter(bat_data, bat_id == bat), filter(weather_data, bat_id ==bat))
-}
->>>>>>> 243523e18ea9360ab6a737c5cc1856d26ec0d314:bat_graphs.R
-
-### Playing with other graphs
-
-# something about facets not being included?
-sex_sp_plot <- ggplot(bat_data, aes(x = date_time, y = skin_temp)) +
-  geom_point()+
-  geom_point(data = weather_data, aes(x = date_time, y = temp_C), color = "red")+
-  facet_grid(bat_data$sex ~ bat_data$species)+
-  geom_hline(aes(yintercept=25, color="red", linetype="dashed"))+
-  geom_hline(aes(yintercept=10, color="red", linetype="dashed"))+
-  scale_x_datetime(breaks = "1 day") +
-  ylab("Temp (C)") +
-  xlab("Time")+
-  theme_bw()
-print(sex_sp_plot)
-
 
 #######################
 # NOT CURRENTLY IN USE
